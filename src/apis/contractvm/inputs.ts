@@ -23,9 +23,9 @@ const serializer = Serialization.getInstance();
  * @returns An instance of an [[Input]]-extended class.
  */
 export const SelectInputClass = (inputid:number, ...args:Array<any>):Input => {
-  if (inputid === PlatformVMConstants.SECPINPUTID) {
+  if (inputid === ContractVMConstants.SECPINPUTID) {
     return new SECPTransferInput(...args);
-  } else if (inputid === PlatformVMConstants.STAKEABLELOCKINID) {
+  } else if (inputid === ContractVMConstants.STAKEABLELOCKINID) {
     return new StakeableLockIn(...args);
   }
   /* istanbul ignore next */
@@ -76,7 +76,7 @@ export class TransferableInput extends StandardTransferableInput {
     offset += 32;
     this.outputidx = bintools.copyFrom(bytes, offset, offset + 4);
     offset += 4;
-    this.assetid = bintools.copyFrom(bytes, offset, offset + PlatformVMConstants.ASSETIDLEN);
+    this.assetid = bintools.copyFrom(bytes, offset, offset + ContractVMConstants.ASSETIDLEN);
     offset += 32;
     const inputid:number = bintools.copyFrom(bytes, offset, offset + 4).readUInt32BE(0);
     offset += 4;
@@ -99,7 +99,7 @@ export abstract class AmountInput extends StandardAmountInput {
 
 export class SECPTransferInput extends AmountInput {
   protected _typeName = "SECPTransferInput";
-  protected _typeID = PlatformVMConstants.SECPINPUTID;
+  protected _typeID = ContractVMConstants.SECPINPUTID;
 
   //serialize and deserialize both are inherited
 
@@ -110,7 +110,7 @@ export class SECPTransferInput extends AmountInput {
     return this._typeID;
   }
 
-  getCredentialID = ():number => PlatformVMConstants.SECPCREDENTIAL;
+  getCredentialID = ():number => ContractVMConstants.SECPCREDENTIAL;
 
   create(...args:any[]):this{
     return new SECPTransferInput(...args) as this;
@@ -129,7 +129,7 @@ export class SECPTransferInput extends AmountInput {
  */
 export class StakeableLockIn extends AmountInput {
   protected _typeName = "StakeableLockIn";
-  protected _typeID = PlatformVMConstants.STAKEABLELOCKINID;
+  protected _typeID = ContractVMConstants.STAKEABLELOCKINID;
 
   //serialize and deserialize both are inherited
 
@@ -182,7 +182,7 @@ export class StakeableLockIn extends AmountInput {
     return this._typeID;
   }
 
-  getCredentialID = ():number => PlatformVMConstants.SECPCREDENTIAL;
+  getCredentialID = ():number => ContractVMConstants.SECPCREDENTIAL;
 
   /**
    * Popuates the instance from a {@link https://github.com/feross/buffer|Buffer} representing the [[StakeableLockIn]] and returns the size of the output.

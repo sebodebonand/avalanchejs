@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-PlatformVM-ExportTx
+ * @module API-ContractVM-ExportTx
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { PlatformVMConstants } from './constants';
+import { ContractVMConstants } from './constants';
 import { TransferableOutput } from './outputs';
 import { TransferableInput } from './inputs';
 import { BaseTx } from './basetx';
@@ -24,7 +24,7 @@ const serializer = Serialization.getInstance();
  */
 export class ExportTx extends BaseTx {
   protected _typeName = "ExportTx";
-  protected _typeID = PlatformVMConstants.EXPORTTX;
+  protected _typeID = ContractVMConstants.EXPORTTX;
 
   serialize(encoding:SerializedEncoding = "hex"):object {
     let fields:object = super.serialize(encoding);
@@ -54,7 +54,7 @@ export class ExportTx extends BaseTx {
    * Returns the id of the [[ExportTx]]
    */
   getTxType = ():number => {
-    return PlatformVMConstants.EXPORTTX;
+    return ContractVMConstants.EXPORTTX;
   }
 
   /**
