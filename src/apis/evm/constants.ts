@@ -1,9 +1,9 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-Constants
+ * @module API-EVM-Constants
  */
 
-export class ContractVMConstants {
+export class EVMConstants {
   static LATESTCODEC:number = 0;
 
   static SECPFXID:number = 0;
@@ -20,27 +20,13 @@ export class ContractVMConstants {
 
   static STAKEABLELOCKINID:number = 21;
 
-  static LOCKEDSTAKEABLES:Array<number> = [ContractVMConstants.STAKEABLELOCKINID, ContractVMConstants.STAKEABLELOCKOUTID];
+  static LOCKEDSTAKEABLES:Array<number> = [EVMConstants.STAKEABLELOCKINID, EVMConstants.STAKEABLELOCKOUTID];
 
   static BASETX:number = 0;
 
-  static ADDVALIDATORTX:number = 12;
+  static IMPORTTX:number = 0;
 
-  static ADDSUBNETVALIDATORTX:number = 13;
-
-  static ADDDELEGATORTX:number = 14;
-
-  static CREATECHAINTX:number = 15;
-
-  static CREATESUBNETTX:number = 16;
-
-  static IMPORTTX:number = 17;
-
-  static EXPORTTX:number = 18;
-
-  static ADVANCETIMETX:number = 19;
-
-  static REWARDVALIDATORTX:number = 20;
+  static EXPORTTX:number = 1;
 
   static SECPCREDENTIAL:number = 9;
 

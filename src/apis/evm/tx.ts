@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-Transactions
+ * @module API-EVM-Transactions
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { SelectCredentialClass } from './credentials';
 import { KeyChain, KeyPair } from './keychain';
 import { StandardTx, StandardUnsignedTx } from '../../common/tx';
@@ -29,11 +29,11 @@ const serializer = Serialization.getInstance();
  * @returns An instance of an [[BaseTx]]-extended class.
  */
 export const SelectTxClass = (txtype:number, ...args:Array<any>):BaseTx => {
-  if (txtype === ContractVMConstants.BASETX) {
+  if (txtype === EVMConstants.BASETX) {
     return new BaseTx(...args);
-  } else if (txtype === ContractVMConstants.IMPORTTX) {
+  } else if (txtype === EVMConstants.IMPORTTX) {
     return new ImportTx(...args);
-  } else if (txtype === ContractVMConstants.EXPORTTX) {
+  } else if (txtype === EVMConstants.EXPORTTX) {
     return new ExportTx(...args);
   } 
   /* istanbul ignore next */

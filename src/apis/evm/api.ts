@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM
+ * @module API-EVM
  */
 import { Buffer } from 'buffer/';
 import BN from 'bn.js';
@@ -10,11 +10,11 @@ import { RequestResponseData } from '../../common/apibase';
 import BinTools from '../../utils/bintools';
 import { KeyChain } from './keychain';
 import { Defaults, PlatformChainID, ONEAVAX } from '../../utils/constants';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { UnsignedTx, Tx } from './tx';
 import { PayloadBase } from '../../utils/payload';
 import { UnixNow, NodeIDStringToBuffer } from '../../utils/helperfunctions';
-import { UTXOSet } from '../contractvm/utxos';
+import { UTXOSet } from './utxos';
 import { PersistanceOptions } from '../../utils/persistenceoptions';
 
 /**
@@ -111,7 +111,7 @@ export class ContractVMAPI extends JRPCAPI {
   parseAddress = (addr:string):Buffer => {
     const alias:string = this.getBlockchainAlias();
     const blockchainID:string = this.getBlockchainID();
-    return bintools.parseAddress(addr, blockchainID, alias, ContractVMConstants.ADDRESSLENGTH);
+    return bintools.parseAddress(addr, blockchainID, alias, EVMConstants.ADDRESSLENGTH);
   };
 
   addressFromBuffer = (address:Buffer):string => {

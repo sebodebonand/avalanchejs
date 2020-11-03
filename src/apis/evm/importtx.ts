@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-ImportTx
+ * @module API-EVM-ImportTx
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { TransferableOutput } from './outputs';
 import { TransferableInput } from './inputs';
 import { KeyChain, KeyPair } from './keychain';
@@ -26,7 +26,7 @@ const serializer = Serialization.getInstance();
  */
 export class ImportTx extends BaseTx {
   protected _typeName = "ImportTx";
-  protected _typeID = ContractVMConstants.IMPORTTX;
+  protected _typeID = EVMConstants.IMPORTTX;
 
   serialize(encoding:SerializedEncoding = "hex"):object {
     let fields:object = super.serialize(encoding);

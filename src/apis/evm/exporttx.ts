@@ -1,16 +1,16 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-ExportTx
+ * @module API-EVM-ExportTx
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { TransferableOutput } from './outputs';
 import { TransferableInput } from './inputs';
 import { BaseTx } from './basetx';
 import { DefaultNetworkID } from '../../utils/constants';
 import BN from 'bn.js';
-import { AmountOutput } from '../contractvm/outputs';
+import { AmountOutput } from './outputs';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
 
 /**
@@ -24,7 +24,7 @@ const serializer = Serialization.getInstance();
  */
 export class ExportTx extends BaseTx {
   protected _typeName = "ExportTx";
-  protected _typeID = ContractVMConstants.EXPORTTX;
+  protected _typeID = EVMConstants.EXPORTTX;
 
   serialize(encoding:SerializedEncoding = "hex"):object {
     let fields:object = super.serialize(encoding);
@@ -54,7 +54,7 @@ export class ExportTx extends BaseTx {
    * Returns the id of the [[ExportTx]]
    */
   getTxType = ():number => {
-    return ContractVMConstants.EXPORTTX;
+    return EVMConstants.EXPORTTX;
   }
 
   /**

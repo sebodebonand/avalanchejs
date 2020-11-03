@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-Outputs
+ * @module API-EVM-Outputs
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { Output, StandardAmountOutput, StandardTransferableOutput, StandardParseableOutput, Address } from '../../common/output';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
 import BN from 'bn.js';
@@ -20,11 +20,11 @@ const serializer = Serialization.getInstance();
  * @returns An instance of an [[Output]]-extended class.
  */
 export const SelectOutputClass = (outputid:number, ...args:Array<any>):Output => {
-    if(outputid == ContractVMConstants.SECPXFEROUTPUTID){
+    if(outputid == EVMConstants.SECPXFEROUTPUTID){
       return new SECPTransferOutput( ...args);
-    } else if(outputid == ContractVMConstants.SECPOWNEROUTPUTID) {
+    } else if(outputid == EVMConstants.SECPOWNEROUTPUTID) {
       return new SECPOwnerOutput(...args);
-    } else if(outputid == ContractVMConstants.STAKEABLELOCKOUTID) {
+    } else if(outputid == EVMConstants.STAKEABLELOCKOUTID) {
       return new StakeableLockOut(...args);
     }
     throw new Error("Error - SelectOutputClass: unknown outputid " + outputid);
@@ -43,8 +43,8 @@ export class TransferableOutput extends StandardTransferableOutput{
   }
 
   fromBuffer(bytes:Buffer, offset:number = 0):number {
-    this.assetID = bintools.copyFrom(bytes, offset, offset + ContractVMConstants.ASSETIDLEN);
-    offset += ContractVMConstants.ASSETIDLEN;
+    this.assetID = bintools.copyFrom(bytes, offset, offset + EVMConstants.ASSETIDLEN);
+    offset += EVMConstants.ASSETIDLEN;
     const outputid:number = bintools.copyFrom(bytes, offset, offset + 4).readUInt32BE(0);
     offset += 4;
     this.output = SelectOutputClass(outputid);
@@ -96,7 +96,7 @@ export abstract class AmountOutput extends StandardAmountOutput {
  */
 export class SECPTransferOutput extends AmountOutput {
   protected _typeName = "SECPTransferOutput";
-  protected _typeID = ContractVMConstants.SECPXFEROUTPUTID;
+  protected _typeID = EVMConstants.SECPXFEROUTPUTID;
 
   //serialize and deserialize both are inherited
 
@@ -123,7 +123,7 @@ export class SECPTransferOutput extends AmountOutput {
  */
 export class StakeableLockOut extends AmountOutput {
   protected _typeName = "StakeableLockOut";
-  protected _typeID = ContractVMConstants.STAKEABLELOCKOUTID;
+  protected _typeID = EVMConstants.STAKEABLELOCKOUTID;
 
   //serialize and deserialize both are inherited
 
@@ -258,7 +258,7 @@ export class StakeableLockOut extends AmountOutput {
  */
 export class SECPOwnerOutput extends Output {
   protected _typeName = "SECPOwnerOutput";
-  protected _typeID = ContractVMConstants.SECPOWNEROUTPUTID;
+  protected _typeID = EVMConstants.SECPOWNEROUTPUTID;
 
   //serialize and deserialize both are inherited
 

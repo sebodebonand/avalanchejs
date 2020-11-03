@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-UTXOs
+ * @module API-EVM-UTXOs
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
@@ -9,12 +9,12 @@ import { AmountOutput, SelectOutputClass, TransferableOutput, SECPOwnerOutput, P
 import { AmountInput, SECPTransferInput, StakeableLockIn, TransferableInput, ParseableInput } from './inputs';
 import { UnixNow } from '../../utils/helperfunctions';
 import { StandardUTXO, StandardUTXOSet } from '../../common/utxos';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { UnsignedTx } from './tx';
-import { ExportTx } from '../contractvm/exporttx';
+import { ExportTx } from './exporttx';
 import { DefaultNetworkID, Defaults } from '../../utils/constants';
-import { ImportTx } from '../contractvm/importtx';
-import { BaseTx } from '../contractvm/basetx';
+import { ImportTx } from './importtx';
+import { BaseTx } from './basetx';
 import { StandardAssetAmountDestination, AssetAmount } from '../../common/assetamount';
 import { Output } from '../../common/output';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
@@ -88,7 +88,7 @@ export class UTXO extends StandardUTXO {
   }
 
   create(
-    codecID:number = ContractVMConstants.LATESTCODEC, 
+    codecID:number = EVMConstants.LATESTCODEC, 
     txid:Buffer = undefined,
     outputidx:Buffer | number = undefined,
     assetid:Buffer = undefined,

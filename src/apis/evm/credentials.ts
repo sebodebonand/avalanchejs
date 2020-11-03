@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-Credentials
+ * @module API-EVM-Credentials
  */
 import BinTools from '../../utils/bintools';
 
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { Credential } from '../../common/credentials';
 import { Serialization } from '../../utils/serialization';
 
@@ -22,7 +22,7 @@ const serializer = Serialization.getInstance();
  * @returns An instance of an [[Credential]]-extended class.
  */
 export const SelectCredentialClass = (credid:number, ...args:Array<any>):Credential => {
-  if (credid === ContractVMConstants.SECPCREDENTIAL) {
+  if (credid === EVMConstants.SECPCREDENTIAL) {
     return new SECPCredential(...args);
   }
   /* istanbul ignore next */
@@ -31,7 +31,7 @@ export const SelectCredentialClass = (credid:number, ...args:Array<any>):Credent
 
 export class SECPCredential extends Credential {
   protected _typeName = "SECPCredential";
-  protected _typeID = ContractVMConstants.SECPCREDENTIAL;
+  protected _typeID = EVMConstants.SECPCREDENTIAL;
 
   //serialize and deserialize both are inherited
 

@@ -1,10 +1,10 @@
 /**
  * @packageDocumentation
- * @module API-ContractVM-BaseTx
+ * @module API-EVM-BaseTx
  */
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
-import { ContractVMConstants } from './constants';
+import { EVMConstants } from './constants';
 import { TransferableOutput } from './outputs';
 import { TransferableInput } from './inputs';
 import { SelectCredentialClass } from './credentials';
@@ -12,7 +12,7 @@ import { KeyChain, KeyPair } from './keychain';
 import { StandardBaseTx } from '../../common/tx';
 import { Signature, SigIdx, Credential } from '../../common/credentials';
 import { DefaultNetworkID } from '../../utils/constants';
-import { SelectTxClass } from '../contractvm/tx';
+import { SelectTxClass } from './tx';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
 
 /**
@@ -26,7 +26,7 @@ const serializer = Serialization.getInstance();
  */
 export class BaseTx extends StandardBaseTx<KeyPair, KeyChain>{
   protected _typeName = "BaseTx";
-  protected _typeID = ContractVMConstants.CREATESUBNETTX;
+  protected _typeID = EVMConstants.BASETX;
 
   deserialize(fields:object, encoding:SerializedEncoding = "hex") {
     super.deserialize(fields, encoding);
@@ -63,7 +63,7 @@ export class BaseTx extends StandardBaseTx<KeyPair, KeyChain>{
    * Returns the id of the [[BaseTx]]
    */
   getTxType = ():number => {
-    return ContractVMConstants.BASETX;
+    return EVMConstants.BASETX;
   }
 
   /**
