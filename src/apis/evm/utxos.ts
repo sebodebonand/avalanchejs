@@ -5,8 +5,8 @@
 import { Buffer } from 'buffer/';
 import BinTools from '../../utils/bintools';
 import BN from "bn.js";
-import { AmountOutput, SelectOutputClass, TransferableOutput, SECPOwnerOutput, ParseableOutput, StakeableLockOut, SECPTransferOutput } from './outputs';
-import { AmountInput, SECPTransferInput, StakeableLockIn, TransferableInput, ParseableInput } from './inputs';
+import { AmountOutput, SelectOutputClass, TransferableOutput, ParseableOutput, EVMOutput, SECPTransferOutput } from './outputs';
+import { AmountInput, SECPTransferInput, EVMInput, TransferableInput, ParseableInput } from './inputs';
 import { UnixNow } from '../../utils/helperfunctions';
 import { StandardUTXO, StandardUTXOSet } from '../../common/utxos';
 import { EVMConstants } from './constants';
@@ -166,7 +166,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
 
   getMinimumSpendable = (aad:AssetAmountDestination, asOf:BN = UnixNow(), locktime:BN = new BN(0), threshold:number = 1, stakeable:boolean = false):Error => {
     const utxoArray:Array<UTXO> = this.getAllUTXOs().filter((u) => {
-      if(!stakeable && u.getOutput() instanceof StakeableLockOut && (u.getOutput() as StakeableLockOut).getStakeableLocktime().gt(asOf)){
+      if(!stakeable && u.getOutput() instanceof EVMOutput && (u.getOutput() as EVMOutput).getStakeableLocktime().gt(asOf)){
         return false;
       };
       return true;
@@ -190,10 +190,10 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
           const txid:Buffer = u.getTxID();
           const outputidx:Buffer = u.getOutputIdx();
           let input:AmountInput;
-          if(uout instanceof StakeableLockOut) {
-            let stakeout:StakeableLockOut = uout as StakeableLockOut;
+          if(uout instanceof EVMOutput) {
+            let stakeout:EVMOutput = uout as EVMOutput;
             let pinput:ParseableInput = new ParseableInput(new SECPTransferInput(amount));
-            input = new StakeableLockIn(amount, stakeout.getStakeableLocktime(), pinput);
+            input = new EVMInput(amount, stakeout.getStakeableLocktime(), pinput);
             am.spendAmount(amount, true);
             outs[assetKey].lockedStakeable.push(uout);
           } else {
@@ -243,7 +243,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
       
       if (unlockedAmount.gt(zero) || stakeableLockedAmount.gt(zero) || change.gt(zero)) {
         if(stakeableLockedAmount.gt(zero) || (isStakeableLockChange && change.gt(zero))) {
-          let ls:Array<StakeableLockOut> = outs[assetKey].lockedStakeable;
+          let ls:Array<EVMOutput> = outs[assetKey].lockedStakeable;
           let schange:BN = isStakeableLockChange ? change : zero.clone();
           for(let j = 0; j < ls.length; j++) {
             let stakeableLocktime:BN = ls[j].getStakeableLocktime();
@@ -260,7 +260,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
                   o.getLocktime(), 
                   o.getThreshold()
               ) as AmountOutput;
-              let schangeOut:StakeableLockOut = SelectOutputClass(
+              let schangeOut:EVMOutput = SelectOutputClass(
                   ls[j].getOutputID(),
                   schange,  
                   o.getAddresses(), 
@@ -268,7 +268,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
                   o.getThreshold(), 
                   stakeableLocktime, 
                   new ParseableOutput(schangeNewOut)
-              ) as StakeableLockOut;
+              ) as EVMOutput;
               const xferout:TransferableOutput = new TransferableOutput(amounts[i].getAssetID(), schangeOut);
               aad.addChange(xferout);
             }
@@ -279,7 +279,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
               o.getLocktime(), 
               o.getThreshold()
             ) as AmountOutput;
-            let spendout:StakeableLockOut = SelectOutputClass(
+            let spendout:EVMOutput = SelectOutputClass(
               ls[j].getOutputID(),
               spendme,  
               o.getAddresses(), 
@@ -287,7 +287,7 @@ export class UTXOSet extends StandardUTXOSet<UTXO>{
               o.getThreshold(), 
               stakeableLocktime, 
               new ParseableOutput(newout)
-            ) as StakeableLockOut;
+            ) as EVMOutput;
             const xferout:TransferableOutput = new TransferableOutput(amounts[i].getAssetID(), spendout);
             aad.addOutput(xferout);
           }

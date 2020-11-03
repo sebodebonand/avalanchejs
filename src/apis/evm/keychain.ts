@@ -13,7 +13,7 @@ const bintools: BinTools = BinTools.getInstance();
 
 
 /**
- * Class for representing a private and public keypair on the Contract Chain. 
+ * Class for representing a private and public keypair on the EVM. 
  */
 export class KeyPair extends SECP256k1KeyPair {
 

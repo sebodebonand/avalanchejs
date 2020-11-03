@@ -25,8 +25,8 @@ const serializer = Serialization.getInstance();
 export const SelectInputClass = (inputid:number, ...args:Array<any>):Input => {
   if (inputid === EVMConstants.SECPINPUTID) {
     return new SECPTransferInput(...args);
-  } else if (inputid === EVMConstants.STAKEABLELOCKINID) {
-    return new StakeableLockIn(...args);
+  } else if (inputid === EVMConstants.EVMINPUTID) {
+    return new EVMInput(...args);
   }
   /* istanbul ignore next */
   throw new Error(`Error - SelectInputClass: unknown inputid ${inputid}`);
@@ -127,9 +127,9 @@ export class SECPTransferInput extends AmountInput {
 /**
  * An [[Input]] class which specifies an input that has a locktime which can also enable staking of the value held, preventing transfers but not validation.
  */
-export class StakeableLockIn extends AmountInput {
-  protected _typeName = "StakeableLockIn";
-  protected _typeID = EVMConstants.STAKEABLELOCKINID;
+export class EVMInput extends AmountInput {
+  protected _typeName = "EVMInputID";
+  protected _typeID = EVMConstants.EVMINPUTID;
 
   //serialize and deserialize both are inherited
 
@@ -204,11 +204,11 @@ export class StakeableLockIn extends AmountInput {
   }
   
   create(...args:any[]):this{
-    return new StakeableLockIn(...args) as this;
+    return new EVMInput(...args) as this;
   }
 
   clone():this {
-    const newout:StakeableLockIn = this.create()
+    const newout:EVMInput = this.create()
     newout.fromBuffer(this.toBuffer());
     return newout as this;
   }

@@ -22,10 +22,8 @@ const serializer = Serialization.getInstance();
 export const SelectOutputClass = (outputid:number, ...args:Array<any>):Output => {
     if(outputid == EVMConstants.SECPXFEROUTPUTID){
       return new SECPTransferOutput( ...args);
-    } else if(outputid == EVMConstants.SECPOWNEROUTPUTID) {
-      return new SECPOwnerOutput(...args);
-    } else if(outputid == EVMConstants.STAKEABLELOCKOUTID) {
-      return new StakeableLockOut(...args);
+    } else if(outputid == EVMConstants.EVMOUTPUTID) {
+      return new EVMOutput(...args);
     }
     throw new Error("Error - SelectOutputClass: unknown outputid " + outputid);
 }
@@ -121,9 +119,9 @@ export class SECPTransferOutput extends AmountOutput {
 /**
  * An [[Output]] class which specifies an input that has a locktime which can also enable staking of the value held, preventing transfers but not validation.
  */
-export class StakeableLockOut extends AmountOutput {
-  protected _typeName = "StakeableLockOut";
-  protected _typeID = EVMConstants.STAKEABLELOCKOUTID;
+export class EVMOutput extends AmountOutput {
+  protected _typeName = "EVMOutput";
+  protected _typeID = EVMConstants.EVMOUTPUTID;
 
   //serialize and deserialize both are inherited
 
@@ -221,11 +219,11 @@ export class StakeableLockOut extends AmountOutput {
   }
 
   create(...args:any[]):this{
-    return new StakeableLockOut(...args) as this;
+    return new EVMOutput(...args) as this;
   }
 
   clone():this {
-    const newout:StakeableLockOut = this.create()
+    const newout:EVMOutput = this.create()
     newout.fromBuffer(this.toBuffer());
     return newout as this;
   }
@@ -249,45 +247,5 @@ export class StakeableLockOut extends AmountOutput {
       this.transferableOutput = transferableOutput;
       this.synchronize();
     }
-  }
-}
-
-
-/**
- * An [[Output]] class which only specifies an Output ownership and uses secp256k1 signature scheme.
- */
-export class SECPOwnerOutput extends Output {
-  protected _typeName = "SECPOwnerOutput";
-  protected _typeID = EVMConstants.SECPOWNEROUTPUTID;
-
-  //serialize and deserialize both are inherited
-
-  /**
-   * Returns the outputID for this output
-   */
-  getOutputID():number {
-    return this._typeID;
-  }
-
-  /**
-   * 
-   * @param assetID An assetID which is wrapped around the Buffer of the Output
-   */
-  makeTransferable(assetID:Buffer):TransferableOutput {
-    return new TransferableOutput(assetID, this);
-  }
-
-  create(...args:any[]):this{
-    return new SECPOwnerOutput(...args) as this;
-  }
-
-  clone():this {
-    const newout:SECPOwnerOutput = this.create()
-    newout.fromBuffer(this.toBuffer());
-    return newout as this;
-  }
-
-  select(id:number, ...args: any[]):Output {
-    return SelectOutputClass(id, ...args);
   }
 }
