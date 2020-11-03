@@ -1422,7 +1422,7 @@ export class PlatformVMAPI extends JRPCAPI {
    * Instead use the [[Avalanche.addAPI]] method.
    *
    * @param core A reference to the Avalanche class
-   * @param baseurl Defaults to the string "/ext/P" as the path to blockchain's baseurl
+   * @param baseurl Defaults to the string "/ext/bc/P" as the path to blockchain's baseurl
    */
   constructor(core:AvalancheCore, baseurl:string = '/ext/bc/P') { 
     super(core, baseurl); 

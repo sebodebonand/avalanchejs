@@ -49,7 +49,7 @@ describe('AVMAPI', () => {
   const username:string = 'AvaLabs';
   const password:string = 'password';
 
-  const avalanche:Avalanche = new Avalanche(ip, port, protocol, networkid, undefined, undefined, true);
+  const avalanche:Avalanche = new Avalanche(ip, port, protocol, networkid, undefined, undefined, undefined, true);
   let api:AVMAPI;
   let alias:string;
 

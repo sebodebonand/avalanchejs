@@ -10,7 +10,7 @@ import { TransferableInput } from './inputs';
 import { BaseTx } from './basetx';
 import { DefaultNetworkID } from '../../utils/constants';
 import BN from 'bn.js';
-import { AmountOutput } from '../platformvm/outputs';
+import { AmountOutput } from '../contractvm/outputs';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
 
 /**

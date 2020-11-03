@@ -14,7 +14,7 @@ import { ContractVMConstants } from './constants';
 import { UnsignedTx, Tx } from './tx';
 import { PayloadBase } from '../../utils/payload';
 import { UnixNow, NodeIDStringToBuffer } from '../../utils/helperfunctions';
-import { UTXOSet } from '../platformvm/utxos';
+import { UTXOSet } from '../contractvm/utxos';
 import { PersistanceOptions } from '../../utils/persistenceoptions';
 
 /**
@@ -23,20 +23,20 @@ import { PersistanceOptions } from '../../utils/persistenceoptions';
 const bintools:BinTools = BinTools.getInstance();
 
 /**
- * Class for interacting with a node's CChainVMAPI 
+ * Class for interacting with a node's ContractVMAPI 
  *
  * @category RPCAPIs
  *
  * @remarks This extends the [[JRPCAPI]] class. This class should not be directly called. Instead, use the [[Avalanche.addAPI]] function to register this interface with Avalanche.
  */
-export class CChainVMAPI extends JRPCAPI {
+export class ContractVMAPI extends JRPCAPI {
 
   /**
    * @ignore
    */
   protected keychain:KeyChain = new KeyChain('', '');
 
-  protected blockchainID:string = PlatformChainID;
+  protected blockchainID:string = '';
 
   protected blockchainAlias:string = undefined;
 
@@ -111,7 +111,7 @@ export class CChainVMAPI extends JRPCAPI {
   parseAddress = (addr:string):Buffer => {
     const alias:string = this.getBlockchainAlias();
     const blockchainID:string = this.getBlockchainID();
-    return bintools.parseAddress(addr, blockchainID, alias, PlatformVMConstants.ADDRESSLENGTH);
+    return bintools.parseAddress(addr, blockchainID, alias, ContractVMConstants.ADDRESSLENGTH);
   };
 
   addressFromBuffer = (address:Buffer):string => {
@@ -347,7 +347,7 @@ export class CChainVMAPI extends JRPCAPI {
   getBalance = async (address:string):Promise<object> => {
     if (typeof this.parseAddress(address) === 'undefined') {
       /* istanbul ignore next */
-      throw new Error(`Error - CChainVMAPI.getBalance: Invalid address format ${address}`);
+      throw new Error(`Error - ContractVMAPI.getBalance: Invalid address format ${address}`);
     }
     const params:any = {
       address
@@ -607,13 +607,13 @@ export class CChainVMAPI extends JRPCAPI {
     let srcChain:string = undefined;
 
     if(typeof sourceChain === "undefined") {
-      throw new Error("Error - CChainVMAPI.buildImportTx: Source ChainID is undefined.");
+      throw new Error("Error - ContractVMAPI.buildImportTx: Source ChainID is undefined.");
     } else if (typeof sourceChain === "string") {
       srcChain = sourceChain;
       sourceChain = bintools.cb58Decode(sourceChain);
     } else if(!(sourceChain instanceof Buffer)) {
       srcChain = bintools.cb58Encode(sourceChain);
-      throw new Error("Error - CChainVMAPI.buildImportTx: Invalid destinationChain type: " + (typeof sourceChain) );
+      throw new Error("Error - ContractVMAPI.buildImportTx: Invalid destinationChain type: " + (typeof sourceChain) );
     }
     const atomicUTXOs:UTXOSet = await (await this.getUTXOs(ownerAddresses, srcChain, 0, undefined)).utxos;
     const avaxAssetID:Buffer = await this.getAVAXAssetID();
@@ -680,22 +680,22 @@ export class CChainVMAPI extends JRPCAPI {
       prefixes[a.split("-")[0]] = true;
     });
     if(Object.keys(prefixes).length !== 1){
-      throw new Error("Error - CChainVMAPI.buildExportTx: To addresses must have the same chainID prefix.");
+      throw new Error("Error - ContractVMAPI.buildExportTx: To addresses must have the same chainID prefix.");
     }
 
     if(typeof destinationChain === "undefined") {
-      throw new Error("Error - CChainVMAPI.buildExportTx: Destination ChainID is undefined.");
+      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID is undefined.");
     } else if (typeof destinationChain === "string") {
       destinationChain = bintools.cb58Decode(destinationChain); //
     } else if(!(destinationChain instanceof Buffer)) {
-      throw new Error("Error - CChainVMAPI.buildExportTx: Invalid destinationChain type: " + (typeof destinationChain) );
+      throw new Error("Error - ContractVMAPI.buildExportTx: Invalid destinationChain type: " + (typeof destinationChain) );
     }
     if(destinationChain.length !== 32) {
-      throw new Error("Error - CChainVMAPI.buildExportTx: Destination ChainID must be 32 bytes in length.");
+      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID must be 32 bytes in length.");
     }
     /*
     if(bintools.cb58Encode(destinationChain) !== Defaults.network[this.core.getNetworkID()].X["blockchainID"]) {
-      throw new Error("Error - CChainVMAPI.buildExportTx: Destination ChainID must The X-Chain ID in the current version of AvalancheJS.");
+      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID must The X-Chain ID in the current version of AvalancheJS.");
     }*/
 
     let to:Array<Buffer> = [];
@@ -734,208 +734,6 @@ export class CChainVMAPI extends JRPCAPI {
   };
 
   /**
-  * Helper function which creates an unsigned [[AddSubnetValidatorTx]]. For more granular control, you may create your own
-  * [[UnsignedTx]] manually and import the [[AddSubnetValidatorTx]] class directly.
-  *
-  * @param utxoset A set of UTXOs that the transaction is built on.
-  * @param fromAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who pays the fees in AVAX
-  * @param changeAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who gets the change leftover from the fee payment
-  * @param nodeID The node ID of the validator being added.
-  * @param startTime The Unix time when the validator starts validating the Primary Network.
-  * @param endTime The Unix time when the validator stops validating the Primary Network (and staked AVAX is returned).
-  * @param weight The amount of weight for this subnet validator.
-  * @param memo Optional contains arbitrary bytes, up to 256 bytes
-  * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-  *  
-  * @returns An unsigned transaction created from the passed in parameters.
-  */
-
-  /* Re-implement when subnetValidator signing process is clearer
-  buildAddSubnetValidatorTx = async (
-    utxoset:UTXOSet, 
-    fromAddresses:Array<string>,
-    changeAddresses:Array<string>,
-    nodeID:string, 
-    startTime:BN, 
-    endTime:BN,
-    weight:BN,
-    memo:PayloadBase|Buffer = undefined, 
-    asOf:BN = UnixNow()
-  ):Promise<UnsignedTx> => {
-    const from:Array<Buffer> = this._cleanAddressArray(fromAddresses, 'buildAddSubnetValidatorTx').map((a) => bintools.stringToAddress(a));
-    const change:Array<Buffer> = this._cleanAddressArray(changeAddresses, 'buildAddSubnetValidatorTx').map((a) => bintools.stringToAddress(a));
-
-    if( memo instanceof PayloadBase) {
-      memo = memo.getPayload();
-    }
-
-    const avaxAssetID:Buffer = await this.getAVAXAssetID();
-    
-    const now:BN = UnixNow();
-    if (startTime.lt(now) || endTime.lte(startTime)) {
-      throw new Error("CChainVMAPI.buildAddSubnetValidatorTx -- startTime must be in the future and endTime must come after startTime");
-    }
-
-    const builtUnsignedTx:UnsignedTx = utxoset.buildAddSubnetValidatorTx(
-      this.core.getNetworkID(), 
-      bintools.cb58Decode(this.blockchainID), 
-      from,
-      change,
-      NodeIDStringToBuffer(nodeID),
-      startTime, endTime,
-      weight, 
-      this.getFee(), 
-      avaxAssetID,
-      memo, asOf
-    );
-
-    if(! await this.checkGooseEgg(builtUnsignedTx)) {
-      /* istanbul ignore next *//*
-      throw new Error("Failed Goose Egg Check");
-    }
-
-    return builtUnsignedTx;
-  }
-
-  */
-
-  /**
-  * Helper function which creates an unsigned [[AddDelegatorTx]]. For more granular control, you may create your own
-  * [[UnsignedTx]] manually and import the [[AddDelegatorTx]] class directly.
-  *
-  * @param utxoset A set of UTXOs that the transaction is built on
-  * @param toAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who recieved the staked tokens at the end of the staking period
-  * @param fromAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who own the staking UTXOs the fees in AVAX
-  * @param changeAddresses An array of addresses as {@link https://github.com/feross/buffer|Buffer} who gets the change leftover from the fee payment
-  * @param nodeID The node ID of the validator being added.
-  * @param startTime The Unix time when the validator starts validating the Primary Network.
-  * @param endTime The Unix time when the validator stops validating the Primary Network (and staked AVAX is returned).
-  * @param stakeAmount The amount being delegated as a {@link https://github.com/indutny/bn.js/|BN}
-  * @param rewardAddresses The addresses which will recieve the rewards from the delegated stake.
-  * @param rewardLocktime Optional. The locktime field created in the resulting reward outputs
-  * @param rewardThreshold Opional. The number of signatures required to spend the funds in the resultant reward UTXO. Default 1.
-  * @param memo Optional contains arbitrary bytes, up to 256 bytes
-  * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-  *  
-  * @returns An unsigned transaction created from the passed in parameters.
-  */
-  buildAddDelegatorTx = async (
-    utxoset:UTXOSet, 
-    toAddresses:Array<string>,
-    fromAddresses:Array<string>,
-    changeAddresses:Array<string>,
-    nodeID:string, 
-    startTime:BN, 
-    endTime:BN,
-    stakeAmount:BN,
-    rewardAddresses:Array<string>,
-    rewardLocktime:BN = new BN(0),
-    rewardThreshold:number = 1,
-    memo:PayloadBase|Buffer = undefined, 
-    asOf:BN = UnixNow()
-  ):Promise<UnsignedTx> => {
-    const to:Array<Buffer> = this._cleanAddressArray(toAddresses, 'buildAddDelegatorTx').map((a) => bintools.stringToAddress(a));
-    const from:Array<Buffer> = this._cleanAddressArray(fromAddresses, 'buildAddDelegatorTx').map((a) => bintools.stringToAddress(a));
-    const change:Array<Buffer> = this._cleanAddressArray(changeAddresses, 'buildAddDelegatorTx').map((a) => bintools.stringToAddress(a));
-    const rewards:Array<Buffer> = this._cleanAddressArray(rewardAddresses, 'buildAddValidatorTx').map((a) => bintools.stringToAddress(a));
-
-    if( memo instanceof PayloadBase) {
-      memo = memo.getPayload();
-    }
-
-    const minStake:BN = (await this.getMinStake())["minDelegatorStake"];
-    if(stakeAmount.lt(minStake)) {
-      throw new Error("CChainVMAPI.buildAddDelegatorTx -- stake amount must be at least " + minStake.toString(10));
-    }
-
-    const avaxAssetID:Buffer = await this.getAVAXAssetID();
-    
-    const now:BN = UnixNow();
-    if (startTime.lt(now) || endTime.lte(startTime)) {
-      throw new Error("CChainVMAPI.buildAddDelegatorTx -- startTime must be in the future and endTime must come after startTime");
-    }
-
-    const builtUnsignedTx:UnsignedTx = utxoset.buildAddDelegatorTx(
-      this.core.getNetworkID(), 
-      bintools.cb58Decode(this.blockchainID), 
-      avaxAssetID,
-      to,
-      from,
-      change,
-      NodeIDStringToBuffer(nodeID),
-      startTime, endTime,
-      stakeAmount,
-      rewardLocktime,
-      rewardThreshold,
-      rewards,
-      new BN(0), 
-      avaxAssetID,
-      memo, asOf
-    );
-
-    if(!await this.checkGooseEgg(builtUnsignedTx)) {
-      /* istanbul ignore next */
-      throw new Error("Failed Goose Egg Check");
-    }
-
-    return builtUnsignedTx;
-  }
-
-  /**
-    * Class representing an unsigned [[CreateSubnetTx]] transaction.
-    *
-    * @param utxoset A set of UTXOs that the transaction is built on
-    * @param fromAddresses The addresses being used to send the funds from the UTXOs {@link https://github.com/feross/buffer|Buffer}
-    * @param changeAddresses The addresses that can spend the change remaining from the spent UTXOs
-    * @param subnetOwnerAddresses An array of addresses for owners of the new subnet
-    * @param subnetOwnerThreshold A number indicating the amount of signatures required to add validators to a subnet
-    * @param fee Optional. The amount of fees to burn in its smallest denomination, represented as {@link https://github.com/indutny/bn.js/|BN}
-    * @param feeAssetID Optional. The assetID of the fees being burned
-    * @param memo Optional contains arbitrary bytes, up to 256 bytes
-    * @param asOf Optional. The timestamp to verify the transaction against as a {@link https://github.com/indutny/bn.js/|BN}
-    * 
-    * @returns An unsigned transaction created from the passed in parameters.
-    */
-  buildCreateSubnetTx = async (
-    utxoset:UTXOSet, 
-    fromAddresses:Array<string>,
-    changeAddresses:Array<string>,
-    subnetOwnerAddresses:Array<string>,
-    subnetOwnerThreshold:number, 
-    memo:PayloadBase|Buffer = undefined, 
-    asOf:BN = UnixNow()
-  ):Promise<UnsignedTx> => {
-    const from:Array<Buffer> = this._cleanAddressArray(fromAddresses, 'buildCreateSubnetTx').map((a) => bintools.stringToAddress(a));
-    const change:Array<Buffer> = this._cleanAddressArray(changeAddresses, 'buildCreateSubnetTx').map((a) => bintools.stringToAddress(a));
-    const owners:Array<Buffer> = this._cleanAddressArray(subnetOwnerAddresses, 'buildCreateSubnetTx').map((a) => bintools.stringToAddress(a));
-
-    if( memo instanceof PayloadBase) {
-      memo = memo.getPayload();
-    }
-
-    const avaxAssetID:Buffer = await this.getAVAXAssetID();
-
-    const builtUnsignedTx:UnsignedTx = utxoset.buildCreateSubnetTx(
-      this.core.getNetworkID(), 
-      bintools.cb58Decode(this.blockchainID), 
-      from,
-      change,
-      owners,
-      subnetOwnerThreshold,
-      this.getCreationTxFee(), 
-      avaxAssetID,
-      memo, asOf
-    );
-
-    if(! await this.checkGooseEgg(builtUnsignedTx, this.getCreationTxFee())) {
-      /* istanbul ignore next */
-      throw new Error("Failed Goose Egg Check");
-    }
-
-    return builtUnsignedTx;
-  }
-
-  /**
    * @ignore
    */
   protected _cleanAddressArray(addresses:Array<string> | Array<Buffer>, caller:string):Array<string> {
@@ -946,7 +744,7 @@ export class CChainVMAPI extends JRPCAPI {
         if (typeof addresses[i] === 'string') {
           if (typeof this.parseAddress(addresses[i] as string) === 'undefined') {
             /* istanbul ignore next */
-            throw new Error(`Error - CChainVMAPI.${caller}: Invalid address format ${addresses[i]}`);
+            throw new Error(`Error - ContractVMAPI.${caller}: Invalid address format ${addresses[i]}`);
           }
           addrs.push(addresses[i] as string);
         } else {
@@ -962,11 +760,12 @@ export class CChainVMAPI extends JRPCAPI {
    * Instead use the [[Avalanche.addAPI]] method.
    *
    * @param core A reference to the Avalanche class
-   * @param baseurl Defaults to the string "/ext/P" as the path to blockchain's baseurl
+   * @param baseurl Defaults to the string "/ext/bc/C/avax" as the path to blockchain's baseurl
+   * @param blockchainID The Blockchain's ID. Defaults to an empty string: ''
    */
-  constructor(core:AvalancheCore, baseurl:string = '/ext/bc/P') { 
+  constructor(core:AvalancheCore, baseurl:string = '/ext/bc/C/avax', blockchainID:string = '') { 
     super(core, baseurl); 
-    this.blockchainID = PlatformChainID;
+    this.blockchainID = blockchainID;
     const netid:number = core.getNetworkID();
     if (netid in Defaults.network && this.blockchainID in Defaults.network[netid]) {
       const { alias } = Defaults.network[netid][this.blockchainID];

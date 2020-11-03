@@ -12,7 +12,7 @@ import { KeyChain, KeyPair } from './keychain';
 import { StandardBaseTx } from '../../common/tx';
 import { Signature, SigIdx, Credential } from '../../common/credentials';
 import { DefaultNetworkID } from '../../utils/constants';
-import { SelectTxClass } from '../platformvm/tx';
+import { SelectTxClass } from '../contractvm/tx';
 import { Serialization, SerializedEncoding } from '../../utils/serialization';
 
 /**
