@@ -6,7 +6,7 @@ import AvalancheCore from './avalanche';
 import { AdminAPI } from './apis/admin/api';
 import { AuthAPI } from './apis/auth/api';
 import { AVMAPI } from './apis/avm/api';
-import { ContractVMAPI } from './apis/evm/api';
+import { EVMAPI } from './apis/evm/api';
 import { HealthAPI } from './apis/health/api';
 import { InfoAPI } from './apis/info/api';
 import { KeystoreAPI } from './apis/keystore/api';
@@ -40,9 +40,9 @@ export default class Avalanche extends AvalancheCore {
   Auth = () => this.apis.auth as AuthAPI;
 
   /**
-     * Returns a reference to the ContractVM RPC pointed at the C-Chain.
+     * Returns a reference to the EVMAPI RPC pointed at the C-Chain.
      */
-  CChain = () => this.apis.cchain as ContractVMAPI;
+  CChain = () => this.apis.cchain as EVMAPI;
 
   /**
      * Returns a reference to the AVM RPC pointed at the X-Chain.
@@ -136,7 +136,7 @@ export default class Avalanche extends AvalancheCore {
       this.addAPI('admin', AdminAPI);
       this.addAPI('auth', AuthAPI);
       this.addAPI('xchain', AVMAPI, '/ext/bc/X', xchainid);
-      this.addAPI('cchain', ContractVMAPI, '/ext/bc/C/avax', cchainid);
+      this.addAPI('cchain', EVMAPI, '/ext/bc/C/avax', cchainid);
       this.addAPI('health', HealthAPI);
       this.addAPI('info', InfoAPI);
       this.addAPI('keystore', KeystoreAPI);

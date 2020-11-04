@@ -9,11 +9,11 @@ import { JRPCAPI } from '../../common/jrpcapi';
 import { RequestResponseData } from '../../common/apibase';
 import BinTools from '../../utils/bintools';
 import { KeyChain } from './keychain';
-import { Defaults, PlatformChainID, ONEAVAX } from '../../utils/constants';
+import { Defaults, PrimaryAssetAlias, ONEAVAX } from '../../utils/constants';
 import { EVMConstants } from './constants';
 import { UnsignedTx, Tx } from './tx';
 import { PayloadBase } from '../../utils/payload';
-import { UnixNow, NodeIDStringToBuffer } from '../../utils/helperfunctions';
+import { UnixNow } from '../../utils/helperfunctions';
 import { UTXOSet } from './utxos';
 import { PersistanceOptions } from '../../utils/persistenceoptions';
 
@@ -23,13 +23,13 @@ import { PersistanceOptions } from '../../utils/persistenceoptions';
 const bintools:BinTools = BinTools.getInstance();
 
 /**
- * Class for interacting with a node's ContractVMAPI 
+ * Class for interacting with a node's EVMAPI 
  *
  * @category RPCAPIs
  *
  * @remarks This extends the [[JRPCAPI]] class. This class should not be directly called. Instead, use the [[Avalanche.addAPI]] function to register this interface with Avalanche.
  */
-export class ContractVMAPI extends JRPCAPI {
+export class EVMAPI extends JRPCAPI {
 
   /**
    * @ignore
@@ -71,7 +71,7 @@ export class ContractVMAPI extends JRPCAPI {
    * @param alias The alias for the blockchainID.
    * 
    */
-  setBlockchainAlias = (alias:string):string => {
+  setBlockchainAlias = (alias:string):undefined => {
     this.blockchainAlias = alias;
     /* istanbul ignore next */
     return undefined;
@@ -94,7 +94,7 @@ export class ContractVMAPI extends JRPCAPI {
   refreshBlockchainID = (blockchainID:string = undefined):boolean => {
     const netid:number = this.core.getNetworkID();
     if (typeof blockchainID === 'undefined' && typeof Defaults.network[netid] !== "undefined") {
-      this.blockchainID = PlatformChainID; //default to P-Chain
+      this.blockchainID = Defaults.network[netid].C.blockchainID; // Default to C-Chain
       return true;
     } if (typeof blockchainID === 'string') {
       this.blockchainID = blockchainID;
@@ -127,10 +127,15 @@ export class ContractVMAPI extends JRPCAPI {
    * @returns The the provided string representing the AVAX AssetID
    */
   getAVAXAssetID = async (refresh:boolean = false):Promise<Buffer> => {
-    if (typeof this.AVAXAssetID === 'undefined' || refresh) {
-      const assetID:string = await this.getStakingAssetID();
-      this.AVAXAssetID = bintools.cb58Decode(assetID);
-    }
+    // if (typeof this.AVAXAssetID === 'undefined' || refresh) {
+    //   const asset:{
+    //     name: string;
+    //     symbol: string;
+    //     assetID: Buffer;
+    //     denomination: number;
+    //   } = await this.getAssetDescription(PrimaryAssetAlias);
+    //   this.AVAXAssetID = asset.assetID;
+    // }
     return this.AVAXAssetID;
   };
   
@@ -154,7 +159,7 @@ export class ContractVMAPI extends JRPCAPI {
    * @returns The default tx fee as a {@link https://github.com/indutny/bn.js/|BN}
    */
   getDefaultTxFee =  ():BN => {
-    return this.core.getNetworkID() in Defaults.network ? new BN(Defaults.network[this.core.getNetworkID()]["P"]["txFee"]) : new BN(0);
+    return this.core.getNetworkID() in Defaults.network ? new BN(Defaults.network[this.core.getNetworkID()]["C"]["txFee"]) : new BN(0);
   }
 
   /**
@@ -185,7 +190,7 @@ export class ContractVMAPI extends JRPCAPI {
    * @returns The default creation fee as a {@link https://github.com/indutny/bn.js/|BN}
    */
   getDefaultCreationTxFee =  ():BN => {
-    return this.core.getNetworkID() in Defaults.network ? new BN(Defaults.network[this.core.getNetworkID()]["P"]["creationTxFee"]) : new BN(0);
+    return this.core.getNetworkID() in Defaults.network ? new BN(Defaults.network[this.core.getNetworkID()]["C"]["creationTxFee"]) : new BN(0);
   }
 
   /**
@@ -252,127 +257,6 @@ export class ContractVMAPI extends JRPCAPI {
   }
 
   /**
-   * Retrieves an assetID for a subnet's staking assset.
-   *
-   * @returns Returns a Promise<string> with cb58 encoded value of the assetID.
-   */
-  getStakingAssetID = async ():Promise<string> => {
-    const params:any = {};
-    return this.callMethod('platform.getStakingAssetID', params).then((response:RequestResponseData) => (response.data.result.assetID));
-  };
-
-  /**
-   * Creates a new blockchain.
-   *
-   * @param username The username of the Keystore user that controls the new account
-   * @param password The password of the Keystore user that controls the new account
-   * @param subnetID Optional. Either a {@link https://github.com/feross/buffer|Buffer} or an cb58 serialized string for the SubnetID or its alias.
-   * @param vmID The ID of the Virtual Machine the blockchain runs. Can also be an alias of the Virtual Machine.
-   * @param FXIDs The ids of the FXs the VM is running.
-   * @param name A human-readable name for the new blockchain
-   * @param genesis The base 58 (with checksum) representation of the genesis state of the new blockchain. Virtual Machines should have a static API method named buildGenesis that can be used to generate genesisData.
-   *
-   * @returns Promise for the unsigned transaction to create this blockchain. Must be signed by a sufficient number of the Subnet’s control keys and by the account paying the transaction fee.
-   */
-  createBlockchain = async (
-    username: string,
-    password:string,
-    subnetID:Buffer | string = undefined,
-    vmID:string,
-    fxIDs: Array<number>,
-    name:string,
-    genesis:string,
-    )
-  :Promise<string> => {
-    const params:any = {
-      username, 
-      password,
-      fxIDs,
-      vmID,
-      name,
-      genesisData: genesis,
-    };
-    if (typeof subnetID === 'string') {
-      params.subnetID = subnetID;
-    } else if (typeof subnetID !== 'undefined') {
-      params.subnetID = bintools.cb58Encode(subnetID);
-    }
-    return this.callMethod('platform.createBlockchain', params)
-      .then((response:RequestResponseData) => response.data.result.txID);
-  };
-
-  /**
-   * Gets the status of a blockchain.
-   *
-   * @param blockchainID The blockchainID requesting a status update
-   *
-   * @returns Promise for a string of one of: "Validating", "Created", "Preferred", "Unknown".
-   */
-  getBlockchainStatus = async (blockchainID: string):Promise<string> => {
-    const params:any = {
-      blockchainID,
-    };
-    return this.callMethod('platform.getBlockchainStatus', params)
-      .then((response:RequestResponseData) => response.data.result.status);
-  };
-
-  /**
-   * Create an address in the node's keystore.
-   *
-   * @param username The username of the Keystore user that controls the new account
-   * @param password The password of the Keystore user that controls the new account
-   *
-   * @returns Promise for a string of the newly created account address.
-   */
-  createAddress = async (
-    username: string,
-    password:string
-  )
-  :Promise<string> => {
-    const params:any = {
-      username,
-      password,
-    };
-    return this.callMethod('platform.createAddress', params)
-      .then((response:RequestResponseData) => response.data.result.address);
-  };
-
-  /**
-   * Gets the balance of a particular asset.
-   *
-   * @param address The address to pull the asset balance from
-   *
-   * @returns Promise with the balance as a {@link https://github.com/indutny/bn.js/|BN} on the provided address.
-   */
-  getBalance = async (address:string):Promise<object> => {
-    if (typeof this.parseAddress(address) === 'undefined') {
-      /* istanbul ignore next */
-      throw new Error(`Error - ContractVMAPI.getBalance: Invalid address format ${address}`);
-    }
-    const params:any = {
-      address
-    };
-    return  this.callMethod('platform.getBalance', params).then((response:RequestResponseData) => response.data.result);
-  };
-  
-  /**
-   * List the addresses controlled by the user.
-   *
-   * @param username The username of the Keystore user
-   * @param password The password of the Keystore user
-   *
-   * @returns Promise for an array of addresses.
-   */
-  listAddresses = async (username: string, password:string):Promise<Array<string>> => {
-    const params:any = {
-      username,
-      password,
-    };
-    return this.callMethod('platform.listAddresses', params)
-      .then((response:RequestResponseData) => response.data.result.addresses);
-  };
-
-  /**
    * Send AVAX from an account on the P-Chain to an address on the X-Chain. This transaction
    * must be signed with the key of the account that the AVAX is sent from and which pays
    * the transaction fee. After issuing this transaction, you must call the X-Chain’s
@@ -395,7 +279,7 @@ export class ContractVMAPI extends JRPCAPI {
       username,
       password,
     };
-    return this.callMethod('platform.importAVAX', params)
+    return this.callMethod('avax.importAVAX', params)
       .then((response:RequestResponseData) => response.data.result.txID);
   };
 
@@ -425,15 +309,6 @@ export class ContractVMAPI extends JRPCAPI {
     };
     return this.callMethod('platform.issueTx', params).then((response:RequestResponseData) => response.data.result.txID);
   };
-
-  /**
-   * Returns an upper bound on the amount of tokens that exist. Not monotonically increasing because this number can go down if a staker's reward is denied.
-   */
-  getCurrentSupply = async ():Promise<BN> => {
-    const params:any = {};
-    return this.callMethod('platform.getCurrentSupply', params)
-      .then((response:RequestResponseData) => new BN(response.data.result.supply, 10));
-  }
 
   /**
    * Exports the private key for an address.
@@ -607,13 +482,13 @@ export class ContractVMAPI extends JRPCAPI {
     let srcChain:string = undefined;
 
     if(typeof sourceChain === "undefined") {
-      throw new Error("Error - ContractVMAPI.buildImportTx: Source ChainID is undefined.");
+      throw new Error("Error - EVMAPI.buildImportTx: Source ChainID is undefined.");
     } else if (typeof sourceChain === "string") {
       srcChain = sourceChain;
       sourceChain = bintools.cb58Decode(sourceChain);
     } else if(!(sourceChain instanceof Buffer)) {
       srcChain = bintools.cb58Encode(sourceChain);
-      throw new Error("Error - ContractVMAPI.buildImportTx: Invalid destinationChain type: " + (typeof sourceChain) );
+      throw new Error("Error - EVMAPI.buildImportTx: Invalid destinationChain type: " + (typeof sourceChain) );
     }
     const atomicUTXOs:UTXOSet = await (await this.getUTXOs(ownerAddresses, srcChain, 0, undefined)).utxos;
     const avaxAssetID:Buffer = await this.getAVAXAssetID();
@@ -680,22 +555,22 @@ export class ContractVMAPI extends JRPCAPI {
       prefixes[a.split("-")[0]] = true;
     });
     if(Object.keys(prefixes).length !== 1){
-      throw new Error("Error - ContractVMAPI.buildExportTx: To addresses must have the same chainID prefix.");
+      throw new Error("Error - EVMAPI.buildExportTx: To addresses must have the same chainID prefix.");
     }
 
     if(typeof destinationChain === "undefined") {
-      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID is undefined.");
+      throw new Error("Error - EVMAPI.buildExportTx: Destination ChainID is undefined.");
     } else if (typeof destinationChain === "string") {
       destinationChain = bintools.cb58Decode(destinationChain); //
     } else if(!(destinationChain instanceof Buffer)) {
-      throw new Error("Error - ContractVMAPI.buildExportTx: Invalid destinationChain type: " + (typeof destinationChain) );
+      throw new Error("Error - EVMAPI.buildExportTx: Invalid destinationChain type: " + (typeof destinationChain) );
     }
     if(destinationChain.length !== 32) {
-      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID must be 32 bytes in length.");
+      throw new Error("Error - EVMAPI.buildExportTx: Destination ChainID must be 32 bytes in length.");
     }
     /*
     if(bintools.cb58Encode(destinationChain) !== Defaults.network[this.core.getNetworkID()].X["blockchainID"]) {
-      throw new Error("Error - ContractVMAPI.buildExportTx: Destination ChainID must The X-Chain ID in the current version of AvalancheJS.");
+      throw new Error("Error - EVMAPI.buildExportTx: Destination ChainID must The X-Chain ID in the current version of AvalancheJS.");
     }*/
 
     let to:Array<Buffer> = [];
@@ -744,7 +619,7 @@ export class ContractVMAPI extends JRPCAPI {
         if (typeof addresses[i] === 'string') {
           if (typeof this.parseAddress(addresses[i] as string) === 'undefined') {
             /* istanbul ignore next */
-            throw new Error(`Error - ContractVMAPI.${caller}: Invalid address format ${addresses[i]}`);
+            throw new Error(`Error - EVMAPI.${caller}: Invalid address format ${addresses[i]}`);
           }
           addrs.push(addresses[i] as string);
         } else {

@@ -120,6 +120,7 @@ const n0C:object = {
   alias: CChainAlias,
   vm: CChainVMName,
   gasPrice: GWEI.mul(new BN(470)), //equivalent to gas price
+  creationTxFee: CENTIAVAX,
   chainID: 43111
 };
 
@@ -155,6 +156,7 @@ const n1C:object = {
   alias: CChainAlias,
   vm: CChainVMName,
   gasPrice: GWEI.mul(new BN(470)), 
+  creationTxFee: CENTIAVAX,
   chainID: 43114
 };
 
@@ -189,6 +191,7 @@ const n2C:object = {
   blockchainID: '2mUYSXfLrDtigwbzj1LxKVsHwELghc5sisoXrzJwLqAAQHF4i',
   alias: CChainAlias,
   vm: CChainVMName,
+  creationTxFee: 0,
   gasPrice: 0
 };
 
@@ -221,6 +224,7 @@ const n3C:object = {
   blockchainID: 'zJytnh96Pc8rM337bBrtMvJDbEdDNjcXG3WkTNCiLp18ergm9',
   alias: CChainAlias,
   vm: CChainVMName,
+  creationTxFee: 0,
   gasPrice: 0
 };
 
@@ -254,6 +258,7 @@ const n4C:object = {
   alias: CChainAlias,
   vm: CChainVMName,
   gasPrice: GWEI.mul(new BN(470)),
+  creationTxFee: CENTIAVAX,
   chainID: 43110
 };
 
@@ -288,6 +293,7 @@ const n5C:object = {
   alias: CChainAlias,
   vm: CChainVMName,
   gasPrice: GWEI.mul(new BN(470)), 
+  creationTxFee: CENTIAVAX,
   chainID: 43113
 };
 
