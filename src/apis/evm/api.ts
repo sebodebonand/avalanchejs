@@ -302,12 +302,12 @@ export class EVMAPI extends JRPCAPI {
       Transaction = tx.toString();
     } else {
       /* istanbul ignore next */
-      throw new Error('Error - platform.issueTx: provided tx is not expected type of string, Buffer, or Tx');
+      throw new Error('Error - avax.issueTx: provided tx is not expected type of string, Buffer, or Tx');
     }
     const params:any = {
       tx: Transaction.toString(),
     };
-    return this.callMethod('platform.issueTx', params).then((response:RequestResponseData) => response.data.result.txID);
+    return this.callMethod('avax.issueTx', params).then((response:RequestResponseData) => response.data.result.txID);
   };
 
   /**
@@ -325,7 +325,7 @@ export class EVMAPI extends JRPCAPI {
       password,
       address,
     };
-    return this.callMethod('platform.exportKey', params)
+    return this.callMethod('avax.exportKey', params)
       .then((response:RequestResponseData) => response.data.result.privateKey);
   };
 
@@ -344,7 +344,7 @@ export class EVMAPI extends JRPCAPI {
       password,
       privateKey,
     };
-    return this.callMethod('platform.importKey', params)
+    return this.callMethod('avax.importKey', params)
       .then((response:RequestResponseData) => response.data.result.address);
   };
 
@@ -359,7 +359,7 @@ export class EVMAPI extends JRPCAPI {
     const params:any = {
       txID: txid,
     };
-    return this.callMethod('platform.getTx', params).then((response:RequestResponseData) => response.data.result.tx);
+    return this.callMethod('avax.getTx', params).then((response:RequestResponseData) => response.data.result.tx);
   };
 
   /**
@@ -373,7 +373,7 @@ export class EVMAPI extends JRPCAPI {
     const params:any = {
       txID: txid,
     };
-    return this.callMethod('platform.getTxStatus', params).then((response:RequestResponseData) => response.data.result);
+    return this.callMethod('avax.getTxStatus', params).then((response:RequestResponseData) => response.data.result.status);
   };
 
   /**
@@ -419,7 +419,7 @@ export class EVMAPI extends JRPCAPI {
       params.sourceChain = sourceChain;
     }
 
-    return this.callMethod('platform.getUTXOs', params).then((response:RequestResponseData) => {
+    return this.callMethod('avax.getUTXOs', params).then((response:RequestResponseData) => {
 
       const utxos:UTXOSet = new UTXOSet();
       let data = response.data.result.utxos;
